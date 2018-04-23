@@ -4,7 +4,7 @@ import json
 import os
 import sys
 
-from IPython.kernel.kernelspec import install_kernel_spec
+from jupyter_client.kernelspec import install_kernel_spec
 from IPython.utils.tempdir import TemporaryDirectory
 
 kernel_json = {
@@ -22,7 +22,7 @@ def install_my_kernel_spec(user=True):
 
         print('Installing IPython kernel spec')
         install_kernel_spec(td, 'stata', user=user, replace=True)
-    
+
 
 if __name__ == '__main__':
     install_my_kernel_spec()

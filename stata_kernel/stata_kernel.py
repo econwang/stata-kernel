@@ -1,14 +1,11 @@
-from __future__ import print_function 
+from __future__ import print_function
 import os
 import re
 import time
 import tempfile
 
 import win32com.client
-try:
-    from ipykernel.kernelbase import Kernel
-except ImportError:
-    from IPython.kernel.zmq.kernelbase import Kernel
+from ipykernel.kernelbase import Kernel
 from IPython.core.magic import register_line_cell_magic
 
 
@@ -23,9 +20,9 @@ class StataKernel(Kernel):
         'mimetype': 'text/x-stata',
         'file_extension': 'do',
     }
-    
+
     log_address = os.path.join(tempfile.gettempdir(), 'stata_kernel_log.txt')
-    
+
     def __init__(self, *args, **kwargs):
         super(StataKernel, self).__init__(*args, **kwargs)
         self.stata = win32com.client.Dispatch("stata.StataOLEApp")
@@ -35,12 +32,12 @@ class StataKernel(Kernel):
         time.sleep(0.5)
         self.log_file = open(self.log_address)
         self.continuation = False
-        
+
         print('init complete')
-        
+
     def remove_continuations(self, code):
         return re.sub(r'\s*\\\\\\\s*\n', ' ', code)
-        
+
     def get_log_line(self, ntries=10):
         UtilIsStataFree = self.stata.UtilIsStataFree
         log_file = self.log_file
@@ -51,12 +48,12 @@ class StataKernel(Kernel):
             log_line = log_file.readline()
             try_num += 1
         return log_line
-            
+
     def ignore_output(self):
         get_log_line = self.get_log_line
         while get_log_line():
             pass
-            
+
     def respond(self):
         lines = []
         UtilIsStataFree = self.stata.UtilIsStataFree
@@ -72,7 +69,7 @@ class StataKernel(Kernel):
             else:
                 time.sleep(0.05)
             log_line = log_file.readline()
-    
+
     def do_execute(
         self,
         code,
@@ -94,7 +91,7 @@ class StataKernel(Kernel):
             self.stata.UtilSetStataBreak()
             self.respond()
             return {'status': 'abort', 'execution_count': self.execution_count}
-            
+
         msg = {
             'status': 'ok',
             'execution_count': self.execution_count,
@@ -102,11 +99,11 @@ class StataKernel(Kernel):
             'user_expressions': {}
         }
         return msg
-        
+
     def do_shutdown(self, restart):
         self.stata_do('    exit, clear\n')
-                
-        
+
+
 if __name__ == '__main__':
-    from IPython.kernel.zmq.kernelapp import IPKernelApp
+    from ipykernel.kernelapp import IPKernelApp
     IPKernelApp.launch_instance(kernel_class=StataKernel)
